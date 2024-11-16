@@ -1,0 +1,354 @@
+{
+    "window.newWindowDimensions": "maximized",
+    "window.zoomLevel": 0.8,
+
+    "editor.fontSize": 14,
+    "editor.fontFamily": "'JetBrains Mono', Monaco, Menlo, 'Courier New', monospace",
+    "editor.fontLigatures": true,
+    "editor.tabSize": 4,
+    "editor.renderWhitespace":"selection",
+    "editor.detectIndentation": true,
+    "editor.cursorStyle": "block",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs":"active",
+    "editor.cursorSmoothCaretAnimation": "explicit",
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.smoothScrolling": true,
+    "editor.wordWrap": "on",
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": true,
+        "rules": {
+            "*.mutable": {
+                "underline": true
+            }
+        }
+    },
+    
+    "workbench.editor.showTabs": "none",
+    "workbench.tree.indent": 20,
+    "workbench.colorTheme": "Catppuccin Frappé",
+    "workbench.list.smoothScrolling": true,
+    "workbench.editor.wrapTabs": true,
+    
+    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.gpuAcceleration": "off",
+    "terminal.integrated.enableMultiLinePasteWarning": "auto",
+    "terminal.integrated.smoothScrolling": true,
+    "terminal.integrated.profiles.osx": {
+        "bash": {
+            "path": "bash",
+            "args": [
+                "-l"
+            ],
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "zsh",
+            "args": [
+                "-l"
+            ]
+        },
+        "nu": {
+            "path": "/Users/comcx/.cargo/bin/nu"
+        }
+    },
+
+    "files.watcherExclude": {
+        "**/.bloop": true,
+        "**/.metals": true,
+        "**/.ammonite": true
+    },
+    "explorer.confirmDragAndDrop": false,
+    "explorer.confirmDelete": false,
+    "git.autofetch": true,
+    "search.followSymlinks": false,
+    "debug.console.fontSize": 15,
+    "chat.editor.fontSize": 14,
+    
+    "latex-workshop.latex.tools": [
+        {
+            "name": "xelatex",
+            "command": "xelatex",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-pdf",
+                "-shell-escape",
+                "%DOCFILE%"
+            ]
+        },
+        {
+            "name": "pdflatex",
+            "command": "pdflatex",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOCFILE%"
+            ]
+        },
+        {
+            "name": "bibtex",
+            "command": "bibtex",
+            "args": [
+                "%DOCFILE%"
+            ]
+        },
+        {
+            "name": "makeglossaries",
+            "command": "makeglossaries",
+            "args": [
+                "%DOCFILE%"
+            ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "XeLaTeX",
+            "tools": [
+                "xelatex"
+            ]
+        },
+        {
+            "name": "PDFLaTeX",
+            "tools": [
+                "pdflatex"
+            ]
+        },
+        {
+            "name": "BibTeX",
+            "tools": [
+                "bibtex"
+            ]
+        },
+        {
+            "name": "LaTeXmk",
+            "tools": [
+                "latexmk"
+            ]
+        },
+        {
+            "name": "xelatex -> bibtex -> xelatex*2",
+            "tools": [
+                "xelatex",
+                "bibtex",
+                "xelatex",
+                "xelatex"
+            ]
+        },
+        {
+            "name": "pdflatex -> bibtex -> pdflatex*2",
+            "tools": [
+                "pdflatex",
+                "bibtex",
+                "pdflatex",
+                "pdflatex"
+            ]
+        },
+        {
+            "name": "xelatex -> bibtex -> makeglossaries -> xelatex*2",
+            "tools": [
+                "xelatex",
+                "bibtex",
+                "makeglossaries",
+                "xelatex",
+                "xelatex"
+            ]
+        }
+    ],
+    "latex-workshop.view.pdf.viewer": "external",
+    "latex-workshop.latex.autoBuild.run":"onSave",
+    "latex-workshop.latex.recipe.default": "first",
+    "notebook.cellToolbarLocation": {
+        "default": "right",
+        "jupyter-notebook": "left"
+    },
+    
+    "markdown.preview.fontSize": 15,
+
+    "gopls": {
+        "ui.semanticTokens": true
+    },
+    "go.inlayHints.compositeLiteralFields": true,
+    "go.inlayHints.rangeVariableTypes": true,
+    "go.inlayHints.constantValues": true,
+    "go.inlayHints.parameterNames": true,
+    
+    "vim.easymotion": true,
+    "vim.incsearch": true,
+    "vim.useSystemClipboard": true,
+    "vim.useCtrlKeys": true,
+    "vim.hlsearch": true,
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["j", "j"],
+            "after": ["<Esc>"]
+        },
+        {
+            "before": ["<C-j>"],
+            "commands": [
+                "cursorDown"
+            ]
+        },
+        {
+            "before": ["C-k"],
+            "commands": ["cursorUp"]
+        },
+        {
+            "before": ["C-h"],
+            "commands": ["cursorLeft"]
+        },
+        {
+            "before": ["<C-l>"],
+            "commands": ["cursorRight"]
+        }
+    ],
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": ["<leader>", "d"],
+            "after": ["d", "d"]
+        },
+        {
+            "before": ["<C-n>"],
+            "commands": [":nohl"]
+        },
+        {
+            "before": ["K"],
+            "commands": ["lineBreakInsert"],
+            "silent": true
+        }
+    ],
+    "vim.leader": "<space>",
+    "vim.handleKeys": {
+        "<C-a>": false,
+        "<C-e>": false,
+        "<C-f>": false
+    },
+    
+    "rust-analyzer.cargo.sysrootQueryMetadata": true,
+    
+    "vim.smartRelativeLine": true,
+    "vim.cursorStylePerMode.insert": "line-thin",
+    "vim.cursorStylePerMode.normal": "block",
+    "vim.normalModeKeyBindings": [
+        {
+            "before" : ["<leader>","w"],
+            "commands" : [
+                "workbench.action.switchWindow"
+            ]
+        },
+        {
+            "before" : ["<leader>","t"],
+            "commands" : [
+                "workbench.action.terminal.toggleTerminal"
+            ]
+        },
+        {
+            "before" : ["<leader>","s"],
+            "commands" : [
+                "workbench.action.showAllSymbols"
+            ]
+        },
+        {
+            "before" : ["<leader>","f"],
+            "commands" : [
+                "workbench.action.quickOpen"
+            ]
+        },
+        {
+            "before" : ["<leader>","r"],
+            "commands" : [
+                "workbench.action.openRecent"
+            ]
+        },
+        {
+            "before" : ["<leader>","a"],
+            "commands" : [
+                "editor.action.quickFix"
+            ]
+        },
+        {
+            "before": ["<leader>", "p"],
+            "commands": [
+                "workbench.action.showCommands"
+            ]
+        },
+        {
+            "before": ["g", "r"],
+            "commands": [
+                "editor.action.goToReferences"
+            ]
+        },
+        {
+            "before": ["g", "i"],
+            "commands": [
+                "editor.action.goToImplementation"
+            ]
+        },
+        {
+            "before": [":"],
+            "commands": [
+                "workbench.action.showCommands"
+            ],
+            "silent": true
+        }
+    ],
+
+    "[python]": {
+        "editor.formatOnType": true
+    },
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true
+    },
+    "[markdown]": {
+        "editor.defaultFormatter": "fcrespo82.markdown-table-formatter"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "workbench.iconTheme": "catppuccin-frappe",
+    "material-icon-theme.files.customClones": [
+        {
+            "name": "rust-mod",
+            "base": "rust",
+            "color": "blue-400",
+            "fileNames": ["mod.rs"]
+        },
+        {
+            "name": "rust-lib",
+            "base": "rust",
+            "color": "light-green-300",
+            "lightColor": "light-green-600",
+            "fileNames": ["lib.rs"]
+        },
+        {
+            "name": "rust-build",
+            "base": "rust",
+            "color": "yellow-300",
+            "fileNames": ["build.rs"]
+        }
+    ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
