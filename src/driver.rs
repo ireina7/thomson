@@ -1,5 +1,6 @@
 use thomson::{collect_rules, parse_json, parse_toml, toml_to_json_by_rules};
 
+#[allow(dead_code)]
 pub struct Driver {
     pub json_path: String,
     pub toml_path: String,

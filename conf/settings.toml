@@ -1,4 +1,8 @@
 # TOML configuration of vscode
+include = [
+    "vim", "latex"
+]
+
 
 [window]
 newWindowDimensions = "maximized"

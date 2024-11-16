@@ -1,0 +1,93 @@
+[latex-workshop]
+view.pdf.viewer = "external"
+latex.autoBuild.run = "onSave"
+latex.recipe.default = "first"
+
+
+[[latex-workshop.latex.tools]]
+name = "xelatex"
+command = "xelatex"
+args = [
+    "-synctex=1",
+    "-interaction=nonstopmode",
+    "-file-line-error",
+    "-pdf",
+    "-shell-escape",
+    "%DOCFILE%"
+]
+
+[[latex-workshop.latex.tools]]
+name = "pdflatex"
+command = "pdflatex"
+args = [
+    "-synctex=1",
+    "-interaction=nonstopmode",
+    "-file-line-error",
+    "%DOCFILE%"
+]
+
+[[latex-workshop.latex.tools]]
+name = "bibtex"
+command = "bibtex"
+args = [
+    "%DOCFILE%"
+]
+
+[[latex-workshop.latex.tools]]
+name = "makeglossaries"
+command = "makeglossaries"
+args = [
+    "%DOCFILE%"
+]
+
+[[latex-workshop.latex.recipes]]
+name = "XeLaTeX"
+tools = [
+    "xelatex"
+]
+
+[[latex-workshop.latex.recipes]]
+name = "PDFLaTeX"
+tools = [
+    "pdflatex"
+]
+
+[[latex-workshop.latex.recipes]]
+name = "BibTeX"
+tools = [
+    "bibtex"
+]
+
+[[latex-workshop.latex.recipes]]
+name = "LaTeXmk"
+tools = [
+    "latexmk"
+]
+
+[[latex-workshop.latex.recipes]]
+name = "xelatex -> bibtex -> xelatex*2"
+tools = [
+    "xelatex",
+    "bibtex",
+    "xelatex",
+    "xelatex"
+]
+
+[[latex-workshop.latex.recipes]]
+name = "pdflatex -> bibtex -> pdflatex*2"
+tools = [
+    "pdflatex",
+    "bibtex",
+    "pdflatex",
+    "pdflatex"
+]
+
+[[latex-workshop.latex.recipes]]
+name = "xelatex -> bibtex -> makeglossaries -> xelatex*2"
+tools = [
+    "xelatex",
+    "bibtex",
+    "makeglossaries",
+    "xelatex",
+    "xelatex"
+]
