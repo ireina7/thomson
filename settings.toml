@@ -97,6 +97,11 @@ leader = "<space>"
 cursorStylePerMode.insert = "line-thin"
 cursorStylePerMode.normal = "block"
 
+[vim.handleKeys]
+'<C-a>' = false
+'<C-e>' = false
+'<C-f>' = false
+
 [[vim.normalModeKeyBindings]]
 before = ["<leader>", "w"]
 commands = ["workbench.action.switchWindow"]

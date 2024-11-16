@@ -174,26 +174,30 @@ fn toml_to_json_map(path: &[String], v: json::Value) -> json::Map<String, json::
     ans
 }
 
+fn insert_json_value(ans: &mut json::Map<String, json::Value>, k: String, v: json::Value) {
+    if !ans.contains_key(&k) {
+        ans.insert(k, v);
+        return;
+    }
+
+    let av = ans.get_mut(&k).unwrap();
+    match (av, v) {
+        (serde_json::Value::Object(ref mut ans), serde_json::Value::Object(map)) => {
+            for (k, v) in map {
+                insert_json_value(ans, k, v);
+            }
+        }
+        _ => unreachable!(),
+    }
+}
+
 fn toml_to_json_value(kv: HashMap<Vec<String>, json::Value>) -> json::Value {
     // dbg!(&kv);
     let mut ans = json::Map::new();
     for (path, v) in kv {
         let line = toml_to_json_map(&path, v);
         for (k, v) in line {
-            if let Some(vv) = ans.get_mut(&k) {
-                match vv {
-                    // serde_json::Value::Array(vec) => todo!(),
-                    serde_json::Value::Object(map) => {
-                        let vo = v.as_object().cloned();
-                        vo.map(|vo| {
-                            map.extend(vo.into_iter());
-                        });
-                    }
-                    _ => panic!("[toml_to_json_value] append to atomic json value!"),
-                }
-            } else {
-                ans.insert(k, v);
-            }
+            insert_json_value(&mut ans, k, v);
         }
     }
     // dbg!(&ans);
@@ -217,9 +221,9 @@ impl Driver {
         // dbg!(&conf_toml);
 
         let rules_json = collect_rules(conf_json);
-        for rule in &rules_json {
-            dbg!(format!("{}", &rule));
-        }
+        // for rule in &rules_json {
+        //     dbg!(format!("{}", &rule));
+        // }
         let json_value = toml_to_json_by_rules(conf_toml, &rules_json);
         Ok(json_value.to_string())
     }
