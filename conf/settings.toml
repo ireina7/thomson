@@ -1,6 +1,8 @@
 # TOML configuration of vscode
 include = [
-    "vim", "latex", "etc"
+    "extension/vim", 
+    "extension/latex", 
+    "etc",
 ]
 
 [window]
@@ -23,43 +25,43 @@ smoothScrolling = true
 wordWrap = "on"
 semanticTokenColorCustomizations.enabled = true
 
-# [editor.semanticTokenColorCustomizations.rules]
-# '*'.mutable = {underline = true}
+[editor.semanticTokenColorCustomizations.rules]
+'*'.mutable = {underline = true}
 
 
-# [workbench]
-# editor.showTabs = "none"
-# tree.indent = 20
-# colorTheme = "Catppuccin Frappé"
-# iconTheme = "catppuccin-frappe"
-# list.smoothScrolling = true
-# editor.wrapTabs = true
+[workbench]
+editor.showTabs = "none"
+tree.indent = 20
+colorTheme = "Catppuccin Frappé"
+iconTheme = "catppuccin-frappe"
+list.smoothScrolling = true
+editor.wrapTabs = true
 
 
-# [terminal.integrated]
-# fontSize = 14
-# defaultProfile.osx = "zsh"
-# gpuAcceleration = "off"
-# enableMultiLinePasteWarning = "auto"
-# smoothScrolling = true
+[terminal.integrated]
+fontSize = 14
+defaultProfile.osx = "zsh"
+gpuAcceleration = "off"
+enableMultiLinePasteWarning = "auto"
+smoothScrolling = true
 
-# [terminal.integrated.profiles.osx.bash]
-# path = "bash"
-# args = ["-l"]
-# icon = "terminal-bash"
-# [terminal.integrated.profiles.osx.zsh]
-# path = "zsh"
-# args = ["-l"]
+[terminal.integrated.profiles.osx.bash]
+path = "bash"
+args = ["-l"]
+icon = "terminal-bash"
+[terminal.integrated.profiles.osx.zsh]
+path = "zsh"
+args = ["-l"]
 
-# [explorer]
-# confirmDragAndDrop = false
-# confirmDelete = false
+[explorer]
+confirmDragAndDrop = false
+confirmDelete = false
 
-# [search]
-# followSymlinks = false
+[search]
+followSymlinks = false
 
-# [debug]
-# console.fontSize = 15
+[debug]
+console.fontSize = 15
 
-# [chat]
-# editor.fontSize = 14
+[chat]
+editor.fontSize = 14
