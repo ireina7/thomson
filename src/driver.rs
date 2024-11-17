@@ -1,24 +1,22 @@
 use thomson::{collect_rules, parse_json, parse_toml, toml_to_json_by_rules};
 
-#[allow(dead_code)]
+use crate::context::Context;
+
 pub struct Driver {
-    pub json_path: String,
-    pub toml_path: String,
-    pub debugging: bool,
+    pub ctx: Context,
 }
 
 impl Driver {
-    pub fn new<A: ToString, B: ToString>(toml_path: A, json_path: B) -> Self {
+    pub fn new<A: ToString, B: ToString, C: ToString>(path: A, toml_path: B, json_path: C) -> Self {
         Self {
-            json_path: json_path.to_string(),
-            toml_path: toml_path.to_string(),
-            debugging: false,
+            ctx: Context::new(path, toml_path, json_path),
         }
     }
 
     pub fn run(&self) -> anyhow::Result<String> {
-        let conf_json = parse_json(std::path::Path::new(&self.json_path))?;
-        let conf_toml = parse_toml(std::path::Path::new(&self.toml_path))?;
+        std::env::set_current_dir(&self.ctx.path)?;
+        let conf_json = parse_json(std::path::Path::new(&self.ctx.json_path))?;
+        let conf_toml = parse_toml(std::path::Path::new(&self.ctx.toml_path))?;
 
         let rules_json = collect_rules(conf_json);
         // for rule in &rules_json {

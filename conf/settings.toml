@@ -1,8 +1,7 @@
 # TOML configuration of vscode
 include = [
-    "vim", "latex"
+    "vim", "latex", "etc"
 ]
-
 
 [window]
 newWindowDimensions = "maximized"
@@ -24,212 +23,43 @@ smoothScrolling = true
 wordWrap = "on"
 semanticTokenColorCustomizations.enabled = true
 
-[editor.semanticTokenColorCustomizations.rules]
-'*'.mutable = {underline = true}
+# [editor.semanticTokenColorCustomizations.rules]
+# '*'.mutable = {underline = true}
 
 
-[workbench]
-editor.showTabs = "none"
-tree.indent = 20
-colorTheme = "Catppuccin Frappé"
-iconTheme = "catppuccin-frappe"
-list.smoothScrolling = true
-editor.wrapTabs = true
+# [workbench]
+# editor.showTabs = "none"
+# tree.indent = 20
+# colorTheme = "Catppuccin Frappé"
+# iconTheme = "catppuccin-frappe"
+# list.smoothScrolling = true
+# editor.wrapTabs = true
 
 
-[terminal.integrated]
-fontSize = 14
-defaultProfile.osx = "zsh"
-gpuAcceleration = "off"
-enableMultiLinePasteWarning = "auto"
-smoothScrolling = true
+# [terminal.integrated]
+# fontSize = 14
+# defaultProfile.osx = "zsh"
+# gpuAcceleration = "off"
+# enableMultiLinePasteWarning = "auto"
+# smoothScrolling = true
 
-[terminal.integrated.profiles.osx.bash]
-path = "bash"
-args = ["-l"]
-icon = "terminal-bash"
-[terminal.integrated.profiles.osx.zsh]
-path = "zsh"
-args = ["-l"]
+# [terminal.integrated.profiles.osx.bash]
+# path = "bash"
+# args = ["-l"]
+# icon = "terminal-bash"
+# [terminal.integrated.profiles.osx.zsh]
+# path = "zsh"
+# args = ["-l"]
 
-[explorer]
-confirmDragAndDrop = false
-confirmDelete = false
+# [explorer]
+# confirmDragAndDrop = false
+# confirmDelete = false
 
-[search]
-followSymlinks = false
+# [search]
+# followSymlinks = false
 
-[debug]
-console.fontSize = 15
+# [debug]
+# console.fontSize = 15
 
-[chat]
-editor.fontSize = 14
-
-
-[files.watcherExclude.'**/']
-bloop = true
-metals = true
-ammonite = true
-
-
-[git]
-autofetch = true
-
-[gopls]
-ui.semanticTokens = true
-
-[go.inlayHints]
-compositeLiteralFields = true
-rangeVariableTypes = true
-constantValues = true
-parameterNames = true
-
-[rust-analyzer]
-cargo.sysrootQueryMetadata = true
-
-[markdown]
-preview.fontSize = 15
-
-[vim]
-smartRelativeLine = true
-easymotion = true
-incsearch = true
-useSystemClipboard = true
-useCtrlKeys = true
-hlsearch = true
-leader = "<space>"
-cursorStylePerMode.insert = "line-thin"
-cursorStylePerMode.normal = "block"
-
-[vim.handleKeys]
-'<C-a>' = false
-'<C-e>' = false
-'<C-f>' = false
-
-[[vim.normalModeKeyBindings]]
-before = ["<leader>", "w"]
-commands = ["workbench.action.switchWindow"]
-[[vim.normalModeKeyBindings]]
-before = ["<leader>", "t"]
-commands = ["workbench.action.terminal.toggleTerminal"]
-[[vim.normalModeKeyBindings]]
-before = ["<leader>", "s"]
-commands = ["workbench.action.showAllSymbols"]
-[[vim.normalModeKeyBindings]]
-before = ["<leader>","f"]
-commands = ["workbench.action.quickOpen"]
-[[vim.normalModeKeyBindings]]
-before =  ["<leader>","r"]
-commands =  ["workbench.action.openRecent"]
-[[vim.normalModeKeyBindings]]
-before = ["<leader>","a"]
-commands = ["editor.action.quickFix"]
-[[vim.normalModeKeyBindings]]
-before = ["<leader>", "p"]
-commands = ["workbench.action.showCommands"]
-[[vim.normalModeKeyBindings]]
-before = ["g", "r"]
-commands = ["editor.action.goToReferences"]
-[[vim.normalModeKeyBindings]]
-before = ["g", "i"]
-commands = ["editor.action.goToImplementation"]
-[[vim.normalModeKeyBindings]]
-before = [":"]
-commands = ["workbench.action.showCommands"]
-silent = true
-
-
-[latex-workshop]
-view.pdf.viewer = "external"
-latex.autoBuild.run = "onSave"
-latex.recipe.default = "first"
-
-
-[[latex-workshop.latex.tools]]
-name = "xelatex"
-command = "xelatex"
-args = [
-    "-synctex=1",
-    "-interaction=nonstopmode",
-    "-file-line-error",
-    "-pdf",
-    "-shell-escape",
-    "%DOCFILE%"
-]
-
-[[latex-workshop.latex.tools]]
-name = "pdflatex"
-command = "pdflatex"
-args = [
-    "-synctex=1",
-    "-interaction=nonstopmode",
-    "-file-line-error",
-    "%DOCFILE%"
-]
-
-[[latex-workshop.latex.tools]]
-name = "bibtex"
-command = "bibtex"
-args = [
-    "%DOCFILE%"
-]
-
-[[latex-workshop.latex.tools]]
-name = "makeglossaries"
-command = "makeglossaries"
-args = [
-    "%DOCFILE%"
-]
-
-[[latex-workshop.latex.recipes]]
-name = "XeLaTeX"
-tools = [
-    "xelatex"
-]
-
-[[latex-workshop.latex.recipes]]
-name = "PDFLaTeX"
-tools = [
-    "pdflatex"
-]
-
-[[latex-workshop.latex.recipes]]
-name = "BibTeX"
-tools = [
-    "bibtex"
-]
-
-[[latex-workshop.latex.recipes]]
-name = "LaTeXmk"
-tools = [
-    "latexmk"
-]
-
-[[latex-workshop.latex.recipes]]
-name = "xelatex -> bibtex -> xelatex*2"
-tools = [
-    "xelatex",
-    "bibtex",
-    "xelatex",
-    "xelatex"
-]
-
-[[latex-workshop.latex.recipes]]
-name = "pdflatex -> bibtex -> pdflatex*2"
-tools = [
-    "pdflatex",
-    "bibtex",
-    "pdflatex",
-    "pdflatex"
-]
-
-[[latex-workshop.latex.recipes]]
-name = "xelatex -> bibtex -> makeglossaries -> xelatex*2"
-tools = [
-    "xelatex",
-    "bibtex",
-    "makeglossaries",
-    "xelatex",
-    "xelatex"
-]
-
+# [chat]
+# editor.fontSize = 14

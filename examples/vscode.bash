@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo run -- ./conf/settings.toml ./conf/rules.json
+cargo run -- ./conf settings.toml rules.json

@@ -32,7 +32,28 @@ where
 
 /// Parse Toml file into [`toml::Value`] whose `Table` is a `BTreeMap<String, toml::Value>`
 pub fn parse_toml(path: &std::path::Path) -> FmtResult<toml::Value> {
-    parse(path)
+    let mut tv = parse(path)?;
+    if let toml::Value::Table(table) = &mut tv {
+        let includes = if table.contains_key("include") {
+            table.remove("include")
+        } else {
+            None
+        };
+
+        if let Some(toml::Value::Array(includes)) = includes {
+            for module in includes {
+                if let Some(path) = module.as_str() {
+                    let path = format!("{}.toml", path);
+                    dbg!(&path);
+                    let inner = parse_toml(&std::path::Path::new(&path))?;
+                    if let toml::Value::Table(t) = inner {
+                        table.extend(t.into_iter());
+                    }
+                }
+            }
+        }
+    }
+    Ok(tv)
 }
 
 /// Parse Json file into [`json::Value`] whose `Object` is a `Map<String, json::Value>`
@@ -91,7 +112,7 @@ fn toml_to_json(value: toml::Value) -> json::Value {
 }
 
 #[allow(dead_code)]
-fn toml_kv(
+fn collect_toml_paths(
     prefix: Vec<String>,
     value: toml::Value,
     collector: &mut HashMap<Vec<String>, json::Value>,
@@ -125,13 +146,13 @@ fn toml_kv(
             for (k, v) in map {
                 let mut prefix = prefix.clone();
                 prefix.push(k);
-                toml_kv(prefix, v, collector);
+                collect_toml_paths(prefix, v, collector);
             }
         }
     }
 }
 
-fn toml_rules_raw(
+fn transform_path(
     mut collector: HashMap<Vec<String>, json::Value>,
     json_rules: &[Rule],
 ) -> HashMap<Vec<String>, json::Value> {
@@ -146,6 +167,8 @@ fn toml_rules_raw(
             collector.remove(path);
         }
     }
+
+    // Found no corresponding rules, output as nested path
     for (path, v) in collector {
         ans.insert(path, v);
     }
@@ -153,10 +176,14 @@ fn toml_rules_raw(
     ans
 }
 
-fn toml_map(toml_value: toml::Value, json_rules: &[Rule]) -> HashMap<Vec<String>, json::Value> {
+fn collect_toml_paths_by_rules(
+    toml_value: toml::Value,
+    json_rules: &[Rule],
+) -> HashMap<Vec<String>, json::Value> {
     let mut collector = HashMap::new();
-    toml_kv(vec![], toml_value, &mut collector);
-    toml_rules_raw(collector, json_rules)
+    collect_toml_paths(vec![], toml_value, &mut collector);
+
+    transform_path(collector, json_rules)
 }
 
 fn toml_to_json_map(path: &[String], v: json::Value) -> json::Map<String, json::Value> {
@@ -205,28 +232,8 @@ fn toml_to_json_value(kv: HashMap<Vec<String>, json::Value>) -> json::Value {
 }
 
 pub fn toml_to_json_by_rules(toml_value: toml::Value, rules: &[Rule]) -> json::Value {
-    let kv = toml_map(toml_value, rules);
+    let kv = collect_toml_paths_by_rules(toml_value, rules);
     toml_to_json_value(kv)
-}
-
-pub struct Driver {
-    pub json_path: String,
-    pub toml_path: String,
-}
-
-impl Driver {
-    pub fn run(&self) -> anyhow::Result<String> {
-        let conf_json = parse_json(std::path::Path::new(&self.json_path))?;
-        let conf_toml = parse_toml(std::path::Path::new(&self.toml_path))?;
-        // dbg!(&conf_toml);
-
-        let rules_json = collect_rules(conf_json);
-        // for rule in &rules_json {
-        //     dbg!(format!("{}", &rule));
-        // }
-        let json_value = toml_to_json_by_rules(conf_toml, &rules_json);
-        Ok(json_value.to_string())
-    }
 }
 
 #[cfg(test)]
@@ -249,7 +256,7 @@ mod test {
         let conf = parse_toml(std::path::Path::new("./Cargo.toml"))?;
         dbg!(&conf);
         let mut collector = HashMap::new();
-        toml_kv(vec![], conf, &mut collector);
+        collect_toml_paths(vec![], conf, &mut collector);
         for (k, v) in collector {
             println!("{:?}: {:?}", k, v);
         }
@@ -258,12 +265,12 @@ mod test {
 
     #[test]
     fn test_toml_rules() -> anyhow::Result<()> {
-        let conf_json = parse_json(std::path::Path::new("./settings.json"))?;
-        let conf_toml = parse_toml(std::path::Path::new("./settings.toml"))?;
+        let conf_json = parse_json(std::path::Path::new("./conf/settings.json"))?;
+        let conf_toml = parse_toml(std::path::Path::new("./conf/settings.toml"))?;
 
         let rules_json = collect_rules(conf_json);
 
-        let rules_toml = toml_map(conf_toml, &rules_json);
+        let rules_toml = collect_toml_paths_by_rules(conf_toml, &rules_json);
         dbg!(rules_toml);
         Ok(())
     }

@@ -1,0 +1,27 @@
+['[rust]']
+editor.defaultFormatter = "rust-lang.rust-analyzer"
+editor.formatOnSave = true
+
+[git]
+autofetch = true
+
+[gopls]
+ui.semanticTokens = true
+
+[go.inlayHints]
+compositeLiteralFields = true
+rangeVariableTypes = true
+constantValues = true
+parameterNames = true
+
+[rust-analyzer]
+cargo.sysrootQueryMetadata = true
+
+[markdown]
+preview.fontSize = 15
+
+[files.watcherExclude.'**/']
+bloop = true
+metals = true
+ammonite = true
+
