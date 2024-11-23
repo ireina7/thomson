@@ -1,3 +1,4 @@
+mod collect;
 mod context;
 pub mod driver;
 mod io;
@@ -8,34 +9,13 @@ use std::collections::HashMap;
 use rule::Rule;
 use serde_json as json;
 
-pub fn collect_rules(conf: json::Value) -> Vec<Rule> {
-    match conf {
-        serde_json::Value::Object(map) => collect_rules_from_map(map),
-        _ => vec![],
-    }
+/// The main logic to transform `TOML` value into `JSON` value by rules
+pub fn toml_to_json_by_rules(toml_value: toml::Value, rules: &[Rule]) -> json::Value {
+    let kv = collect_toml_paths_by_rules(toml_value, rules);
+    toml_to_json_value(kv)
 }
 
-fn collect_rules_from_map(map: json::Map<String, json::Value>) -> Vec<Rule> {
-    let mut rules = vec![];
-    for (k, v) in map {
-        let ks: Vec<_> = k.split(".").map(|s| s.to_string()).collect();
-        let len = ks.len();
-        let mut rule = Rule::from_path(ks);
-        rule.group(0, len);
-
-        let inners = collect_rules(v);
-        if inners.is_empty() {
-            rules.push(rule);
-            continue;
-        }
-        for inner in inners {
-            let r = rule.clone().join(inner);
-            rules.push(r);
-        }
-    }
-    rules
-}
-
+/// Directly transform `TOML` value into `JSON` value without rules.
 fn toml_to_json(value: toml::Value) -> json::Value {
     match value {
         toml::Value::String(s) => json::Value::String(s),
@@ -58,7 +38,7 @@ fn toml_to_json(value: toml::Value) -> json::Value {
     }
 }
 
-#[allow(dead_code)]
+/// Recursively collect `TOML` paths and transform leaf `TOML` values into `JSON` values simultaneously
 fn collect_toml_paths(
     prefix: Vec<String>,
     value: toml::Value,
@@ -99,6 +79,8 @@ fn collect_toml_paths(
     }
 }
 
+/// Transform `TOML` paths by `JSON` rules.  
+/// Keep leaf values.
 fn transform_path(
     mut collector: HashMap<Vec<String>, json::Value>,
     json_rules: &[Rule],
@@ -123,6 +105,7 @@ fn transform_path(
     ans
 }
 
+/// Collect `TOML` {Path->Value} map and transform paths by `JSON` rules simultaneously
 fn collect_toml_paths_by_rules(
     toml_value: toml::Value,
     json_rules: &[Rule],
@@ -178,13 +161,10 @@ fn toml_to_json_value(kv: HashMap<Vec<String>, json::Value>) -> json::Value {
     json::Value::Object(ans)
 }
 
-pub fn toml_to_json_by_rules(toml_value: toml::Value, rules: &[Rule]) -> json::Value {
-    let kv = collect_toml_paths_by_rules(toml_value, rules);
-    toml_to_json_value(kv)
-}
-
 #[cfg(test)]
 mod test {
+    use collect::collect_rules;
+
     use super::*;
 
     #[test]

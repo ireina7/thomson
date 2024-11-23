@@ -2,6 +2,16 @@
 editor.defaultFormatter = "rust-lang.rust-analyzer"
 editor.formatOnSave = true
 
+['[markdown]']
+editor.defaultFormatter = "fcrespo82.markdown-table-formatter"
+
+['[json]']
+editor.defaultFormatter = "esbenp.prettier-vscode"
+
+['[python]']
+editor.formatOnType = true
+
+
 [git]
 autofetch = true
 
@@ -15,6 +25,7 @@ constantValues = true
 parameterNames = true
 
 [rust-analyzer]
+cargo.features = "all"
 cargo.sysrootQueryMetadata = true
 
 [markdown]
@@ -25,3 +36,14 @@ bloop = true
 metals = true
 ammonite = true
 
+[editor.semanticTokenColorCustomizations.rules]
+'*'.mutable = {underline = true}
+
+
+[terminal.integrated.profiles.osx.bash]
+path = "bash"
+args = ["-l"]
+icon = "terminal-bash"
+[terminal.integrated.profiles.osx.zsh]
+path = "zsh"
+args = ["-l"]

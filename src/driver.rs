@@ -1,7 +1,7 @@
 use clap::Parser;
 
 use crate::{
-    collect_rules,
+    collect::collect_rules,
     context::Context,
     io::{parse_json, parse_toml},
     toml_to_json_by_rules,
@@ -39,7 +39,7 @@ impl Driver {
 }
 
 #[derive(clap::Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(version, about = "[Thomson]", long_about = None)]
 pub struct Args {
     #[arg(short, long)]
     pub path: String,

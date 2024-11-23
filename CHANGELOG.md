@@ -8,3 +8,6 @@ Basic conversion output
 
 ## `0.1.2`
 Support modular configs and fix several bugs.
+
+## `0.2.1`
+Support `Clap` bases CLI commands and options.  

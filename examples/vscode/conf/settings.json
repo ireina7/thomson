@@ -228,6 +228,7 @@
     },
     
     "rust-analyzer.cargo.sysrootQueryMetadata": true,
+    "rust-analyzer.cargo.features": "all",
     
     "vim.smartRelativeLine": true,
     "vim.cursorStylePerMode.insert": "line-thin",
@@ -309,28 +310,7 @@
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    "workbench.iconTheme": "catppuccin-frappe",
-    "material-icon-theme.files.customClones": [
-        {
-            "name": "rust-mod",
-            "base": "rust",
-            "color": "blue-400",
-            "fileNames": ["mod.rs"]
-        },
-        {
-            "name": "rust-lib",
-            "base": "rust",
-            "color": "light-green-300",
-            "lightColor": "light-green-600",
-            "fileNames": ["lib.rs"]
-        },
-        {
-            "name": "rust-build",
-            "base": "rust",
-            "color": "yellow-300",
-            "fileNames": ["build.rs"]
-        }
-    ]
+    "workbench.iconTheme": "catppuccin-frappe"
 }
 
 
