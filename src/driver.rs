@@ -1,15 +1,23 @@
-use thomson::{collect_rules, parse_json, parse_toml, toml_to_json_by_rules};
+use clap::Parser;
 
-use crate::context::Context;
+use crate::{
+    collect_rules,
+    context::Context,
+    io::{parse_json, parse_toml},
+    toml_to_json_by_rules,
+};
 
 pub struct Driver {
     pub ctx: Context,
 }
 
 impl Driver {
-    pub fn new<A: ToString, B: ToString, C: ToString>(path: A, toml_path: B, json_path: C) -> Self {
+    pub fn new() -> Self {
+        let args = Args::parse();
+        let conf = args.toml.unwrap_or("settings.toml".to_owned());
+        let rule = args.rule.unwrap_or("settings.json".to_owned());
         Self {
-            ctx: Context::new(path, toml_path, json_path),
+            ctx: Context::new(args.path, conf, rule, args.debugging),
         }
     }
 
@@ -19,10 +27,29 @@ impl Driver {
         let conf_toml = parse_toml(std::path::Path::new(&self.ctx.toml_path))?;
 
         let rules_json = collect_rules(conf_json);
-        // for rule in &rules_json {
-        //     dbg!(format!("{}", &rule));
-        // }
+        if self.ctx.debugging {
+            for rule in &rules_json {
+                let rule = format!("{}", &rule);
+                dbg!(rule);
+            }
+        }
         let json_value = toml_to_json_by_rules(conf_toml, &rules_json);
         Ok(json_value.to_string())
     }
+}
+
+#[derive(clap::Parser, Debug)]
+#[command(version, about, long_about = None)]
+pub struct Args {
+    #[arg(short, long)]
+    pub path: String,
+
+    #[arg(short, long)]
+    pub toml: Option<String>,
+
+    #[arg(short, long)]
+    pub rule: Option<String>,
+
+    #[arg(short, long, action)]
+    pub debugging: bool,
 }
