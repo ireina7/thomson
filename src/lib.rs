@@ -6,11 +6,11 @@ mod rule;
 
 use std::collections::HashMap;
 
-use rule::Rule;
+use rule::Rules;
 use serde_json as json;
 
 /// The main logic to transform `TOML` value into `JSON` value by rules
-pub fn toml_to_json_by_rules(toml_value: toml::Value, rules: &[Rule]) -> json::Value {
+pub fn toml_to_json_by_rules(toml_value: toml::Value, rules: &Rules) -> json::Value {
     let kv = collect_toml_paths_by_rules(toml_value, rules);
     toml_to_json_value(kv)
 }
@@ -83,17 +83,17 @@ fn collect_toml_paths(
 /// Keep leaf values.
 fn transform_path(
     mut collector: HashMap<Vec<String>, json::Value>,
-    json_rules: &[Rule],
+    json_rules: &Rules,
 ) -> HashMap<Vec<String>, json::Value> {
     let mut ans = HashMap::new();
-    // dbg!(&collector);
-    for rule in json_rules {
-        let path = &rule.path;
+    dbg!(&collector);
+    for rule in json_rules.paths() {
+        let path: Vec<String> = rule.units().into_iter().map(|s| s.to_owned()).collect();
         // dbg!(&path, collector.get(path));
-        if let Some(v) = collector.get(path) {
-            ans.insert(rule.flatten(), v.clone());
+        if let Some(v) = collector.get(&path) {
+            ans.insert(rule.flattern(), v.clone());
             // dbg!("insert", rule.flatten(), &v);
-            collector.remove(path);
+            collector.remove(&path);
         }
     }
 
@@ -108,7 +108,7 @@ fn transform_path(
 /// Collect `TOML` {Path->Value} map and transform paths by `JSON` rules simultaneously
 fn collect_toml_paths_by_rules(
     toml_value: toml::Value,
-    json_rules: &[Rule],
+    json_rules: &Rules,
 ) -> HashMap<Vec<String>, json::Value> {
     let mut collector = HashMap::new();
     collect_toml_paths(vec![], toml_value, &mut collector);
@@ -163,7 +163,7 @@ fn toml_to_json_value(kv: HashMap<Vec<String>, json::Value>) -> json::Value {
 
 #[cfg(test)]
 mod test {
-    use collect::collect_rules;
+    use collect::collect_json_rules;
 
     use super::*;
 
@@ -171,8 +171,8 @@ mod test {
     fn test_collect_rules() -> anyhow::Result<()> {
         let conf = io::parse_json(std::path::Path::new("./settings.json"))?;
         dbg!(&conf);
-        let rules = collect_rules(conf);
-        for rule in rules {
+        let rules = collect_json_rules(conf);
+        for rule in rules.paths() {
             println!("{}", rule);
         }
         Ok(())
@@ -195,9 +195,9 @@ mod test {
         let conf_json = io::parse_json(std::path::Path::new("./conf/settings.json"))?;
         let conf_toml = io::parse_toml(std::path::Path::new("./conf/settings.toml"))?;
 
-        let rules_json = collect_rules(conf_json);
+        let rules = collect_json_rules(conf_json);
 
-        let rules_toml = collect_toml_paths_by_rules(conf_toml, &rules_json);
+        let rules_toml = collect_toml_paths_by_rules(conf_toml, &rules);
         dbg!(rules_toml);
         Ok(())
     }

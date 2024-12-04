@@ -124,6 +124,13 @@ impl Default for Path<'_> {
     }
 }
 
+impl fmt::Display for Path<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = self.0.iter().map(|ss| ss.into_iter().join(".")).join(", ");
+        write!(f, "[{}]", s)
+    }
+}
+
 impl<'s> Path<'s> {
     pub fn empty() -> Self {
         Self(Vec::new())
@@ -171,7 +178,7 @@ impl<'s> Path<'s> {
         ans
     }
 
-    fn units(&self) -> Vec<&'s str> {
+    pub fn units(&self) -> Vec<&'s str> {
         self.0.iter().flatten().map(|s| *s).collect()
     }
 }
@@ -193,6 +200,10 @@ impl Default for Rules {
 impl Rules {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub(crate) fn root_mut(&mut self) -> &mut Node {
+        &mut self.root
     }
 
     pub fn paths(&self) -> Vec<Path<'_>> {
@@ -256,16 +267,28 @@ impl Node {
         self.nexts.insert(key.to_string(), Node::link(edge))
     }
 
+    pub(crate) fn contains_key<S: ?Sized>(&self, s: &S) -> bool
+    where
+        String: Borrow<S>,
+        S: Hash + Eq,
+    {
+        self.nexts.contains_key(s)
+    }
+
     pub(crate) fn next<S: ToString>(&mut self, edge: Edge, key: S) -> &mut Node
     where
         String: Borrow<S>,
         S: Hash + Eq,
     {
+        if self.contains_key(&key) {
+            return self.get_mut(&key).unwrap(); // Sad that Rust currently cannot infer None case's lifetime ;(
+        }
+
         self.insert(edge, &key);
         self.get_mut(&key).unwrap() // we know we can safely unwrap here
     }
 
-    pub(crate) fn compact<S, Iter>(&mut self, path: Iter)
+    pub(crate) fn compact<S, Iter>(&mut self, path: Iter) -> &mut Node
     where
         S: ToString + Hash + Eq,
         String: Borrow<S>,
@@ -275,6 +298,7 @@ impl Node {
         for (edge, s) in path {
             this = this.next(edge, s);
         }
+        this
     }
 
     pub(crate) fn get<S: ?Sized>(&self, s: &S) -> Option<&Node>

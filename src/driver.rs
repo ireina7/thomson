@@ -1,7 +1,7 @@
 use clap::Parser;
 
 use crate::{
-    collect::collect_rules,
+    collect::collect_json_rules,
     context::Context,
     io::{parse_json, parse_toml},
     toml_to_json_by_rules,
@@ -26,14 +26,22 @@ impl Driver {
         let conf_json = parse_json(std::path::Path::new(&self.ctx.json_path))?;
         let conf_toml = parse_toml(std::path::Path::new(&self.ctx.toml_path))?;
 
-        let rules_json = collect_rules(conf_json);
+        let rules = collect_json_rules(conf_json);
         if self.ctx.debugging {
-            for rule in &rules_json {
-                let rule = format!("{}", &rule);
-                dbg!(rule);
+            let paths = rules.paths();
+            for path in paths {
+                println!("{}", path);
             }
         }
-        let json_value = toml_to_json_by_rules(conf_toml, &rules_json);
+
+        // let rules_json = collect_rules(conf_json);
+        // if self.ctx.debugging {
+        //     for rule in &rules_json {
+        //         let rule = format!("{}", &rule);
+        //         dbg!(rule);
+        //     }
+        // }
+        let json_value = toml_to_json_by_rules(conf_toml, &rules);
         Ok(json_value.to_string())
     }
 }
