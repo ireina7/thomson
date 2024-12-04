@@ -115,7 +115,7 @@ impl fmt::Display for Rule {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Path<'s>(Vec<Vec<&'s str>>);
 
 impl Default for Path<'_> {
@@ -140,18 +140,22 @@ impl<'s> Path<'s> {
         self.0.len()
     }
 
-    fn push(&mut self, s: &'s str) {
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    pub(crate) fn push(&mut self, s: &'s str) {
         self.0.push(vec![s]);
     }
 
-    fn adhere(&mut self, s: &'s str) {
+    pub(crate) fn adhere(&mut self, s: &'s str) {
         match self.0.last_mut() {
             None => self.push(s),
             Some(unit) => unit.push(s),
         }
     }
 
-    fn pop(&mut self) -> Option<&'s str> {
+    pub(crate) fn pop(&mut self) -> Option<&'s str> {
         match self.0.last_mut() {
             Some(ss) => match ss.pop() {
                 Some(s) => {
@@ -169,7 +173,15 @@ impl<'s> Path<'s> {
         }
     }
 
-    pub fn flattern(&self) -> Vec<String> {
+    pub fn flattern(&mut self) {
+        let ss = self.units();
+        self.clear();
+        for s in ss {
+            self.push(s);
+        }
+    }
+
+    pub fn build(&self) -> Vec<String> {
         let mut ans = Vec::new();
         for ss in &self.0 {
             let s: String = ss.iter().map(|s| *s).join(".");
@@ -183,7 +195,7 @@ impl<'s> Path<'s> {
     }
 }
 
-/// Rule set
+/// Rule set as trie tree
 #[derive(Debug, Clone)]
 pub struct Rules {
     root: Box<Node>,
@@ -204,6 +216,10 @@ impl Rules {
 
     pub(crate) fn root_mut(&mut self) -> &mut Node {
         &mut self.root
+    }
+
+    pub(crate) fn root(&self) -> &Node {
+        &self.root
     }
 
     pub fn paths(&self) -> Vec<Path<'_>> {
@@ -248,9 +264,11 @@ impl Edge {
     }
 }
 
+/// Trie tree node
+/// TODO compact prefix path
 #[derive(Debug, Clone)]
 pub(crate) struct Node {
-    edge: Edge,
+    pub edge: Edge,
     nexts: HashMap<String, Node>,
 }
 
@@ -360,7 +378,7 @@ mod test {
 
         let paths = rules.paths();
         for path in paths {
-            dbg!(path.flattern());
+            dbg!(path.build());
         }
     }
 }

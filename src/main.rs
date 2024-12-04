@@ -1,5 +1,12 @@
+mod collect;
+mod context;
+pub mod driver;
+mod io;
+mod rule;
+mod transform;
+
 fn main() {
-    let driver = thomson::driver::Driver::new();
+    let driver = driver::Driver::new();
 
     match driver.run() {
         Ok(s) => {

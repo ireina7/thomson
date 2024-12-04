@@ -4,7 +4,7 @@ use crate::{
     collect::collect_json_rules,
     context::Context,
     io::{parse_json, parse_toml},
-    toml_to_json_by_rules,
+    transform::transform_by_rules,
 };
 
 pub struct Driver {
@@ -33,15 +33,7 @@ impl Driver {
                 println!("{}", path);
             }
         }
-
-        // let rules_json = collect_rules(conf_json);
-        // if self.ctx.debugging {
-        //     for rule in &rules_json {
-        //         let rule = format!("{}", &rule);
-        //         dbg!(rule);
-        //     }
-        // }
-        let json_value = toml_to_json_by_rules(conf_toml, &rules);
+        let json_value = transform_by_rules(conf_toml, &rules);
         Ok(json_value.to_string())
     }
 }

@@ -33,6 +33,12 @@ smoothScrolling = true
 wordWrap = "on"
 semanticTokenColorCustomizations.enabled = true
 
+[terminal.integrated]
+fontSize = 14
+defaultProfile.osx = "zsh"
+gpuAcceleration = "off"
+enableMultiLinePasteWarning = "auto"
+smoothScrolling = true
 # ...
 ```
 which can be compiled to (ignoring included tomls for now):
@@ -54,7 +60,13 @@ which can be compiled to (ignoring included tomls for now):
   "editor.wordWrap": "on",
   
   "window.newWindowDimensions": "maximized",
-  "window.zoomLevel": 0.8
+  "window.zoomLevel": 0.8,
+
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.enableMultiLinePasteWarning": "auto",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.gpuAcceleration": "off",
+  "terminal.integrated.smoothScrolling": true
 }
 ```
 

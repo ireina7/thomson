@@ -44,7 +44,7 @@ pub fn parse_toml(path: &std::path::Path) -> FmtResult<toml::Value> {
                     // dbg!(&path);
                     let inner = parse_toml(&std::path::Path::new(&path))?;
                     if let toml::Value::Table(t) = inner {
-                        table.extend(t.into_iter());
+                        table.extend(t.into_iter()); // FIXME: may override!!
                     }
                 }
             }

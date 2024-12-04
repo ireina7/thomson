@@ -2,7 +2,7 @@
 include = [
     "extension/vim", 
     "extension/latex", 
-    "etc",
+    # "etc",
 ]
 
 [window]
