@@ -25,18 +25,18 @@ impl Driver {
     /// Do the job!
     pub fn run(&self) -> anyhow::Result<String> {
         std::env::set_current_dir(&self.ctx.path)?;
-        let conf_json = parse_json(std::path::Path::new(&self.ctx.json_path))?;
-        let conf_toml = parse_toml(std::path::Path::new(&self.ctx.toml_path))?;
+        let json_value = parse_json(std::path::Path::new(&self.ctx.json_path))?;
+        let toml_value = parse_toml(std::path::Path::new(&self.ctx.toml_path))?;
 
-        let rules = collect_rules(conf_json);
+        let rules = collect_rules(json_value);
         if self.ctx.debugging {
             let paths = rules.paths();
             for path in paths {
                 eprintln!("{}", path);
             }
         }
-        let json_value = transform_by_rules(conf_toml, &rules);
-        Ok(json_value.to_string())
+        let ans = transform_by_rules(toml_value, &rules);
+        Ok(ans.to_string())
     }
 }
 

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use rule::Rules;
 use serde_json as json;
@@ -64,7 +64,7 @@ fn match_rule_dfs<'v>(
                 // we have missed before
                 if missed {
                     path.flattern(); // cancel all previous adherences
-                    path.push(k);
+                    path.push(Cow::Borrowed(k));
                     match_rule_dfs(v, node, true, path, collector);
                     path.pop();
                     continue;
@@ -74,15 +74,15 @@ fn match_rule_dfs<'v>(
                 if let Some(next) = node.get(k) {
                     match next.edge {
                         rule::Edge::Connected => {
-                            path.adhere(k);
+                            path.adhere(Cow::Borrowed(k));
                         }
                         rule::Edge::Restarted => {
-                            path.push(k);
+                            path.push(Cow::Borrowed(k));
                         }
                     }
                     match_rule_dfs(v, next, false, path, collector);
                 } else {
-                    path.push(k);
+                    path.push(Cow::Borrowed(k));
                     match_rule_dfs(v, node, true, path, collector);
                 }
                 path.pop();

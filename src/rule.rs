@@ -1,5 +1,10 @@
 #![allow(dead_code)]
-use std::{borrow::Borrow, collections::HashMap, fmt, hash::Hash};
+use std::{
+    borrow::{Borrow, Cow},
+    collections::HashMap,
+    fmt,
+    hash::Hash,
+};
 
 use itertools::Itertools;
 
@@ -116,7 +121,7 @@ impl fmt::Display for Rule {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct Path<'s>(Vec<Vec<&'s str>>);
+pub struct Path<'s>(Vec<Vec<Cow<'s, str>>>);
 
 impl Default for Path<'_> {
     fn default() -> Self {
@@ -144,18 +149,18 @@ impl<'s> Path<'s> {
         self.0.clear();
     }
 
-    pub(crate) fn push(&mut self, s: &'s str) {
+    pub(crate) fn push(&mut self, s: Cow<'s, str>) {
         self.0.push(vec![s]);
     }
 
-    pub(crate) fn adhere(&mut self, s: &'s str) {
+    pub(crate) fn adhere(&mut self, s: Cow<'s, str>) {
         match self.0.last_mut() {
             None => self.push(s),
             Some(unit) => unit.push(s),
         }
     }
 
-    pub(crate) fn pop(&mut self) -> Option<&'s str> {
+    pub(crate) fn pop(&mut self) -> Option<Cow<'s, str>> {
         match self.0.last_mut() {
             Some(ss) => match ss.pop() {
                 Some(s) => {
@@ -184,14 +189,14 @@ impl<'s> Path<'s> {
     pub fn build(&self) -> Vec<String> {
         let mut ans = Vec::new();
         for ss in &self.0 {
-            let s: String = ss.iter().map(|s| *s).join(".");
+            let s: String = ss.iter().map(|s| s.to_owned()).join(".");
             ans.push(s);
         }
         ans
     }
 
-    pub fn units(&self) -> Vec<&'s str> {
-        self.0.iter().flatten().map(|s| *s).collect()
+    pub fn units(&self) -> Vec<Cow<'s, str>> {
+        self.0.iter().flatten().map(|s| s.clone()).collect()
     }
 }
 
@@ -237,8 +242,8 @@ impl Rules {
         }
         for (key, next) in &node.nexts {
             match next.edge {
-                Edge::Connected => path.adhere(key),
-                Edge::Restarted => path.push(key),
+                Edge::Connected => path.adhere(Cow::Borrowed(key)),
+                Edge::Restarted => path.push(Cow::Borrowed(key)),
             }
             Self::collect_rules(next, collector, path);
             path.pop();
