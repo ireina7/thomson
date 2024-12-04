@@ -59,14 +59,14 @@ which can be compiled to (ignoring included tomls for now):
   "editor.unicodeHighlight.ambiguousCharacters": false,
   "editor.wordWrap": "on",
   
-  "window.newWindowDimensions": "maximized",
-  "window.zoomLevel": 0.8,
-
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.enableMultiLinePasteWarning": "auto",
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.gpuAcceleration": "off",
-  "terminal.integrated.smoothScrolling": true
+  "terminal.integrated.smoothScrolling": true,
+
+  "window.newWindowDimensions": "maximized",
+  "window.zoomLevel": 0.8
 }
 ```
 
@@ -80,3 +80,17 @@ You can write you *TOML* files in multiple files. **Thomson** can include them r
 bash ./examples/vscode.bash
 ```
 
+or use cli binary directly:
+```
+[Thomson]
+
+Usage: thomson [OPTIONS] --path <PATH>
+
+Options:
+  -p, --path <PATH>  
+  -t, --toml <TOML>  
+  -r, --rule <RULE>  
+  -d, --debugging    
+  -h, --help         Print help
+  -V, --version      Print version
+```

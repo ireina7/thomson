@@ -1,4 +1,4 @@
-#[allow(dead_code)]
+/// Dependency injection
 pub struct Context {
     pub path: String,
     pub json_path: String,

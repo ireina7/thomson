@@ -14,4 +14,6 @@ Support `Clap` bases CLI commands and options.
 
 ## `0.2.2`
 Optimize transformation algorithm by trie tree.
-[ ] BUG: include may override
+
+- [ ] BUG: include may override
+- [ ] TODO: make type `Path<'s>` owned

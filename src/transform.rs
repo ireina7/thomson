@@ -11,13 +11,13 @@ pub fn transform_by_rules(toml_value: toml::Value, rules: &Rules) -> json::Value
     let kv = map_by_rules(&toml_value, rules);
     let kv = kv
         .into_iter()
-        .map(|(k, v)| (k.build(), toml_to_json(v.clone())))
+        .map(|(k, v)| (k.build(), transform(v.clone())))
         .collect();
     toml_to_json_value(kv)
 }
 
 /// Directly transform `TOML` value into `JSON` value without rules.
-fn toml_to_json(value: toml::Value) -> json::Value {
+fn transform(value: toml::Value) -> json::Value {
     match value {
         toml::Value::String(s) => json::Value::String(s),
         toml::Value::Integer(i) => json::Value::Number(json::Number::from_i128(i as i128).unwrap()),
@@ -25,13 +25,13 @@ fn toml_to_json(value: toml::Value) -> json::Value {
         toml::Value::Boolean(b) => json::Value::Bool(b),
         toml::Value::Datetime(datetime) => json::Value::String(datetime.to_string()),
         toml::Value::Array(vec) => {
-            let vs = vec.into_iter().map(|v| toml_to_json(v)).collect();
+            let vs = vec.into_iter().map(|v| transform(v)).collect();
             json::Value::Array(vs)
         }
         toml::Value::Table(map) => {
             let mut kv = HashMap::new();
             for (k, v) in map {
-                let v = toml_to_json(v);
+                let v = transform(v);
                 kv.insert(k, v);
             }
             json::Value::Object(kv.into_iter().collect())
@@ -39,7 +39,7 @@ fn toml_to_json(value: toml::Value) -> json::Value {
     }
 }
 
-/// Transform `TOML` paths by `JSON` rules.
+/// Transform `TOML` paths by `JSON` rules.  
 /// Keep leaf values.
 pub fn map_by_rules<'v>(
     toml_value: &'v toml::Value,
@@ -142,13 +142,13 @@ fn toml_to_json_value(kv: HashMap<Vec<String>, json::Value>) -> json::Value {
 #[cfg(test)]
 mod test {
     use crate::{collect, io};
-    use collect::collect_json_rules;
+    use collect::collect_rules;
 
     #[test]
     fn test_collect_rules() -> anyhow::Result<()> {
-        let conf = io::parse_json(std::path::Path::new("./settings.json"))?;
+        let conf = io::parse_json(std::path::Path::new("./examples/vscode/conf/settings.json"))?;
         dbg!(&conf);
-        let rules = collect_json_rules(conf);
+        let rules = collect_rules(conf);
         for rule in rules.paths() {
             println!("{}", rule);
         }

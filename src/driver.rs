@@ -1,12 +1,13 @@
 use clap::Parser;
 
 use crate::{
-    collect::collect_json_rules,
+    collect::collect_rules,
     context::Context,
     io::{parse_json, parse_toml},
     transform::transform_by_rules,
 };
 
+/// The main entry
 pub struct Driver {
     pub ctx: Context,
 }
@@ -21,16 +22,17 @@ impl Driver {
         }
     }
 
+    /// Do the job!
     pub fn run(&self) -> anyhow::Result<String> {
         std::env::set_current_dir(&self.ctx.path)?;
         let conf_json = parse_json(std::path::Path::new(&self.ctx.json_path))?;
         let conf_toml = parse_toml(std::path::Path::new(&self.ctx.toml_path))?;
 
-        let rules = collect_json_rules(conf_json);
+        let rules = collect_rules(conf_json);
         if self.ctx.debugging {
             let paths = rules.paths();
             for path in paths {
-                println!("{}", path);
+                eprintln!("{}", path);
             }
         }
         let json_value = transform_by_rules(conf_toml, &rules);
