@@ -1,3 +1,5 @@
+//! Build Rules by json.
+
 use crate::rule::{self, Edge, Rules};
 use serde_json as json;
 

@@ -15,5 +15,8 @@ Support `Clap` bases CLI commands and options.
 ## `0.2.2`
 Optimize transformation algorithm by trie tree.
 
-- [ ] BUG: include may override
-- [ ] TODO: make type `Path<'s>` owned
+- [x] BUG: include may override
+- [x] make type `Path<'s>` a `Cow`
+- [x] Directly decompose `toml::Value` by *move*
+- [ ] Handle array type problem
+- [ ] Implement *listening* machanism

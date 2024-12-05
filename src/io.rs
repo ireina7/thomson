@@ -30,7 +30,7 @@ where
 /// Parse Toml file into [`toml::Value`] whose `Table` is a `BTreeMap<String, toml::Value>`
 pub fn parse_toml(path: &std::path::Path) -> FmtResult<toml::Value> {
     let mut tv = parse(path)?;
-    if let toml::Value::Table(table) = &mut tv {
+    if let toml::Value::Table(ref mut table) = &mut tv {
         let includes = if table.contains_key("include") {
             table.remove("include")
         } else {
@@ -44,13 +44,32 @@ pub fn parse_toml(path: &std::path::Path) -> FmtResult<toml::Value> {
                     // dbg!(&path);
                     let inner = parse_toml(&std::path::Path::new(&path))?;
                     if let toml::Value::Table(t) = inner {
-                        table.extend(t.into_iter()); // FIXME: may override!!
+                        for (k, v) in t {
+                            insert_toml_value(table, k, v);
+                        }
                     }
                 }
             }
         }
     }
     Ok(tv)
+}
+
+fn insert_toml_value(ans: &mut toml::map::Map<String, toml::Value>, k: String, v: toml::Value) {
+    if !ans.contains_key(&k) {
+        ans.insert(k, v);
+        return;
+    }
+
+    let av = ans.get_mut(&k).unwrap();
+    match (av, v) {
+        (toml::Value::Table(ref mut ans), toml::Value::Table(map)) => {
+            for (k, v) in map {
+                insert_toml_value(ans, k, v);
+            }
+        }
+        _ => unreachable!(),
+    }
 }
 
 /// Parse Json file into [`json::Value`] whose `Object` is a `Map<String, json::Value>`

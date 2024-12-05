@@ -6,6 +6,7 @@ mod rule;
 mod transform;
 
 fn main() {
+    env_logger::init();
     let driver = driver::Driver::new();
 
     match driver.run() {
@@ -13,7 +14,7 @@ fn main() {
             println!("{}", s);
         }
         Err(err) => {
-            eprintln!("Error: {:?}", err);
+            log::error!("{:?}", err);
         }
     }
 }

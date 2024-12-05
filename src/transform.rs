@@ -8,10 +8,10 @@ use crate::rule;
 /// The main logic to transform `TOML` value into `JSON` value by rules
 pub fn transform_by_rules(toml_value: toml::Value, rules: &Rules) -> json::Value {
     // let kv = collect_toml_paths_by_rules(toml_value, rules);
-    let kv = map_by_rules(&toml_value, rules);
+    let kv = map_by_rules(toml_value, rules);
     let kv = kv
         .into_iter()
-        .map(|(k, v)| (k.build(), transform(v.clone())))
+        .map(|(k, v)| (k.build(), transform(v)))
         .collect();
     toml_to_json_value(kv)
 }
@@ -42,21 +42,21 @@ fn transform(value: toml::Value) -> json::Value {
 /// Transform `TOML` paths by `JSON` rules.  
 /// Keep leaf values.
 pub fn map_by_rules<'v>(
-    toml_value: &'v toml::Value,
+    toml_value: toml::Value,
     rules: &Rules,
-) -> HashMap<rule::Path<'v>, &'v toml::Value> {
+) -> HashMap<rule::Path<'v>, toml::Value> {
     let mut path = rule::Path::empty();
     let mut collector = HashMap::new();
-    match_rule_dfs(&toml_value, rules.root(), false, &mut path, &mut collector);
+    match_rule_dfs(toml_value, rules.root(), false, &mut path, &mut collector);
     collector
 }
 
 fn match_rule_dfs<'v>(
-    toml_value: &'v toml::Value,
+    toml_value: toml::Value,
     node: &rule::Node,
     missed: bool,
     path: &mut rule::Path<'v>,
-    collector: &mut HashMap<rule::Path<'v>, &'v toml::Value>,
+    collector: &mut HashMap<rule::Path<'v>, toml::Value>,
 ) {
     match toml_value {
         toml::Value::Table(map) => {
@@ -64,25 +64,25 @@ fn match_rule_dfs<'v>(
                 // we have missed before
                 if missed {
                     path.flattern(); // cancel all previous adherences
-                    path.push(Cow::Borrowed(k));
+                    path.push(Cow::Owned(k));
                     match_rule_dfs(v, node, true, path, collector);
                     path.pop();
                     continue;
                 }
 
                 // try to match
-                if let Some(next) = node.get(k) {
+                if let Some(next) = node.get(&k) {
                     match next.edge {
                         rule::Edge::Connected => {
-                            path.adhere(Cow::Borrowed(k));
+                            path.adhere(Cow::Owned(k));
                         }
                         rule::Edge::Restarted => {
-                            path.push(Cow::Borrowed(k));
+                            path.push(Cow::Owned(k));
                         }
                     }
                     match_rule_dfs(v, next, false, path, collector);
                 } else {
-                    path.push(Cow::Borrowed(k));
+                    path.push(Cow::Owned(k));
                     match_rule_dfs(v, node, true, path, collector);
                 }
                 path.pop();
