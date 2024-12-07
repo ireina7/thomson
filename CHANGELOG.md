@@ -18,5 +18,9 @@ Optimize transformation algorithm by trie tree.
 - [x] BUG: include may override
 - [x] make type `Path<'s>` a `Cow`
 - [x] Directly decompose `toml::Value` by *move*
-- [ ] Handle array type problem
+- [x] Handle array type problem
 - [ ] Implement *listening* machanism
+
+## `0.2.4`
+Support nested array object of any level!
+

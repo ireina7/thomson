@@ -1,6 +1,6 @@
 //! Build Rules by json.
 
-use crate::rule::{self, Edge, Rules};
+use crate::rule::{self, Edge, Key, Rules};
 use serde_json as json;
 
 /// Collect `JSON` format rules.  
@@ -23,14 +23,19 @@ fn collect_dfs(json_value: json::Value, node: &mut rule::Node) {
                         } else {
                             Edge::Connected
                         },
-                        s,
+                        Key::field(s),
                     )
                 });
                 let next = node.compact(path);
                 collect_dfs(v, next);
             }
         }
-        serde_json::Value::Array(_) => {}
+        serde_json::Value::Array(vs) => {
+            for v in vs {
+                let next = node.next(Edge::Restarted, Key::pseudo_index());
+                collect_dfs(v, next);
+            }
+        }
         _ => {}
     }
 }

@@ -1,18 +1,18 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::HashMap, mem};
 
 use rule::Rules;
 use serde_json as json;
 
-use crate::rule;
+use crate::rule::{self, Key};
 
 /// The main logic to transform `TOML` value into `JSON` value by rules
 pub fn transform_by_rules(toml_value: toml::Value, rules: &Rules) -> json::Value {
     // let kv = collect_toml_paths_by_rules(toml_value, rules);
-    let kv = map_by_rules(toml_value, rules);
-    let kv = kv
+    let kv = map_by_rules(toml_value, rules)
         .into_iter()
-        .map(|(k, v)| (k.build(), transform(v)))
+        .map(|(k, v)| (k, transform(v)))
         .collect();
+
     toml_to_json_value(kv)
 }
 
@@ -47,43 +47,43 @@ pub fn map_by_rules<'v>(
 ) -> HashMap<rule::Path<'v>, toml::Value> {
     let mut path = rule::Path::empty();
     let mut collector = HashMap::new();
-    match_rule_dfs(toml_value, rules.root(), false, &mut path, &mut collector);
+    match_rule_dfs(toml_value, rules.root(), &mut path, &mut collector);
     collector
 }
 
 fn match_rule_dfs<'v>(
     toml_value: toml::Value,
     node: &rule::Node,
-    missed: bool,
     path: &mut rule::Path<'v>,
     collector: &mut HashMap<rule::Path<'v>, toml::Value>,
 ) {
     match toml_value {
         toml::Value::Table(map) => {
             for (k, v) in map {
-                // we have missed before
-                if missed {
-                    path.flattern(); // cancel all previous adherences
-                    path.push(Cow::Owned(k));
-                    match_rule_dfs(v, node, true, path, collector);
-                    path.pop();
-                    continue;
-                }
-
                 // try to match
-                if let Some(next) = node.get(&k) {
-                    match next.edge {
-                        rule::Edge::Connected => {
-                            path.adhere(Cow::Owned(k));
-                        }
-                        rule::Edge::Restarted => {
-                            path.push(Cow::Owned(k));
-                        }
-                    }
-                    match_rule_dfs(v, next, false, path, collector);
+                let key = Key::field(k);
+                if let Some(next) = node.get(&key) {
+                    path.link(next.edge, Cow::Owned(key));
+                    match_rule_dfs(v, next, path, collector);
                 } else {
-                    path.push(Cow::Owned(k));
-                    match_rule_dfs(v, node, true, path, collector);
+                    path.flattern(); // cancel all previous adherences
+                    path.push(Cow::Owned(key));
+                    collector.insert(path.clone(), v);
+                }
+                path.pop();
+            }
+        }
+        toml::Value::Array(vs) => {
+            let len = vs.len();
+            for (i, v) in vs.into_iter().enumerate() {
+                let key = Key::index(i, len);
+                if let Some(next) = node.get(&Key::pseudo_index()) {
+                    path.link(next.edge, Cow::Owned(key));
+                    match_rule_dfs(v, next, path, collector);
+                } else {
+                    path.flattern(); // cancel all previous adherences
+                    path.push(Cow::Owned(key));
+                    collector.insert(path.clone(), v);
                 }
                 path.pop();
             }
@@ -94,50 +94,122 @@ fn match_rule_dfs<'v>(
     }
 }
 
-fn toml_to_json_map(path: &[String], v: json::Value) -> json::Map<String, json::Value> {
-    if path.is_empty() {
-        return vec![].into_iter().collect();
-    }
-    if path.len() == 1 {
-        return vec![(path[0].clone(), v)].into_iter().collect();
-    }
+/// Never touch existed values.  
+///
+/// # PANIC
+/// If conflicts.
+#[allow(dead_code)]
+fn insert_json_value(ans: &mut json::Value, k: Key, v: json::Value) {
+    match ans {
+        serde_json::Value::Array(vec) => match k {
+            Key::Field(_) => panic!(""),
+            Key::Index { of, total } => {
+                if of >= total || vec.len() < total {
+                    panic!("");
+                }
 
-    let mut ans = json::Map::new();
-    let inner = toml_to_json_map(&path[1..], v);
-    ans.insert(path[0].clone(), json::Value::Object(inner));
-
-    ans
-}
-
-fn insert_json_value(ans: &mut json::Map<String, json::Value>, k: String, v: json::Value) {
-    if !ans.contains_key(&k) {
-        ans.insert(k, v);
-        return;
-    }
-
-    let av = ans.get_mut(&k).unwrap();
-    match (av, v) {
-        (serde_json::Value::Object(ref mut ans), serde_json::Value::Object(map)) => {
-            for (k, v) in map {
-                insert_json_value(ans, k, v);
+                match (&mut vec[of], v) {
+                    (json::Value::Null, v) => vec[of] = v,
+                    (slot, json::Value::Object(map)) => {
+                        for (k, v) in map {
+                            insert_json_value(slot, Key::field(k), v);
+                        }
+                    }
+                    _ => {
+                        return;
+                    }
+                }
             }
-        }
+        },
+        serde_json::Value::Object(map) => match k {
+            Key::Field(k) => {
+                if !map.contains_key(&k) {
+                    map.insert(k, v);
+                    return;
+                }
+
+                let av = ans.get_mut(&k).unwrap();
+                match (av, v) {
+                    (av, serde_json::Value::Object(map)) => {
+                        for (k, v) in map {
+                            insert_json_value(av, Key::field(k), v);
+                        }
+                    }
+                    _ => {
+                        return;
+                    }
+                }
+            }
+            Key::Index { .. } => unreachable!(),
+        },
+        serde_json::Value::Null => match k {
+            Key::Field(k) => {
+                let v = json::Value::Object(json::Map::from_iter([(k.into(), v)]));
+                let _ = mem::replace(ans, v);
+            }
+            Key::Index { of, total } => {
+                if of >= total {
+                    panic!("of >= total");
+                }
+                let mut vs = vec![json::Value::Null; total];
+                vs[of] = v;
+                let v = json::Value::Array(vs);
+                let _ = mem::replace(ans, v);
+            }
+        },
         _ => unreachable!(),
     }
 }
 
-fn toml_to_json_value(kv: HashMap<Vec<String>, json::Value>) -> json::Value {
+fn toml_to_json_value(kv: HashMap<rule::Path<'_>, json::Value>) -> json::Value {
     // dbg!(&kv);
-    let mut ans = json::Map::new();
+    let mut ans = json::Value::Null;
     for (path, v) in kv {
-        let line = toml_to_json_map(&path, v);
-        for (k, v) in line {
-            insert_json_value(&mut ans, k, v);
+        let keys = path.keys().collect::<Vec<_>>();
+        if keys.is_empty() {
+            continue;
         }
+
+        let len = keys.len();
+        let mut cur = &mut ans;
+        for key in &keys[..len - 1] {
+            insert_json_value(cur, key.clone(), json::Value::Null);
+            cur = match key {
+                Key::Field(s) => cur.get_mut(s).unwrap(),
+                Key::Index { of, .. } => cur.get_mut(of).unwrap(),
+            }
+        }
+        insert_json_value(cur, keys[len - 1].clone(), v);
     }
     // dbg!(&ans);
-    json::Value::Object(ans)
+    ans
 }
+
+// #[allow(dead_code)]
+// fn insert_json_value_dfs<Iter: Iterator<Item = Key>>(
+//     ans: &mut json::Value,
+//     mut path: Iter,
+//     v: json::Value,
+// ) {
+//     match path.next() {
+//         Some(Key::Field(key)) => {
+//             let inner = json::Map::new();
+//             match ans {
+//                 serde_json::Value::Object(map) => {
+//                     map.insert(key, json::Value::Object(inner));
+//                 }
+//                 _ => todo!(),
+//             }
+//             insert_json_value_dfs(ans, path, v);
+//         }
+//         Some(Key::Index { of, total }) => {
+//             todo!()
+//         }
+//         None => {
+//             let _ = mem::replace(ans, v);
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod test {
