@@ -1,12 +1,13 @@
+use crate::component::rule::{Edge, Key};
+use itertools::Itertools;
 use std::{borrow::Cow, collections::VecDeque, fmt, hash::Hash};
 
-use itertools::Itertools;
+type Unit<'s> = Vec<Cow<'s, Key>>;
 
-use crate::component::rule::{Edge, Key};
-
-/// Representation of a key path, may be owned or not.
+/// Representation of a key path, may be owned or not.  
+/// If a unit is an *Index*, one should ensure that the index is the **ONLY** key inside Unit's Vec
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct Path<'s>(VecDeque<Vec<Cow<'s, Key>>>);
+pub struct Path<'s>(VecDeque<Unit<'s>>);
 
 impl Default for Path<'_> {
     fn default() -> Self {
@@ -22,9 +23,8 @@ impl fmt::Display for Path<'_> {
 }
 
 impl<'s> IntoIterator for Path<'s> {
-    type Item = Vec<Cow<'s, Key>>;
-
-    type IntoIter = <VecDeque<Vec<Cow<'s, Key>>> as IntoIterator>::IntoIter;
+    type Item = Unit<'s>;
+    type IntoIter = <VecDeque<Unit<'s>> as IntoIterator>::IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -114,6 +114,7 @@ impl<'s> Path<'s> {
         }
     }
 
+    /// Get real keys
     pub fn keys(self) -> impl Iterator<Item = Key> + use<'s> {
         self.0.into_iter().filter(|s| !s.is_empty()).map(|part| {
             if part.len() > 1 {

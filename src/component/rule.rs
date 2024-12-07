@@ -81,12 +81,15 @@ impl Key {
         Self::Field(name.to_string())
     }
 
-    pub fn index(of: usize, total: usize) -> Self {
-        Self::Index { of, total }
+    pub fn index(of: usize, total: usize) -> Option<Self> {
+        if of >= total {
+            return None;
+        }
+        Some(Self::Index { of, total })
     }
 
     pub fn pseudo_index() -> Self {
-        Self::index(0, 0)
+        Self::Index { of: 0, total: 0 }
     }
 }
 

@@ -3,18 +3,22 @@ use std::{borrow::Cow, collections::HashMap, mem};
 use rule::Rules;
 use serde_json as json;
 
-use crate::{
-    component::path::Path,
-    component::rule::{self, Key},
+use crate::component::{
+    path::Path,
+    rule::{self, Key},
 };
 
 /// The main logic to transform `TOML` value into `JSON` value by rules
 pub fn transform_by_rules(toml_value: toml::Value, rules: &Rules) -> json::Value {
-    // let kv = collect_toml_paths_by_rules(toml_value, rules);
-    let kv = map_by_rules(toml_value, rules)
+    let kv: HashMap<_, _> = map_by_rules(toml_value, rules)
         .into_iter()
         .map(|(k, v)| (k, transform(v)))
         .collect();
+
+    // TODO: add context to debug
+    // for (k, _) in &kv {
+    //     log::debug!("Transformed path: {}", format!("{}", k));
+    // }
 
     toml_to_json_value(kv)
 }
@@ -76,7 +80,7 @@ fn match_rule_dfs<'v>(
         toml::Value::Array(vs) => {
             let len = vs.len();
             for (i, v) in vs.into_iter().enumerate() {
-                let key = Key::index(i, len);
+                let key = Key::index(i, len).unwrap();
                 if let Some(next) = node.get(&Key::pseudo_index()) {
                     path.link(next.edge, Cow::Owned(key));
                     match_rule_dfs(v, next, path, collector);
@@ -94,122 +98,107 @@ fn match_rule_dfs<'v>(
     }
 }
 
+fn insert_json_array(vec: &mut Vec<json::Value>, k: Key, v: json::Value) {
+    match k {
+        Key::Field(_) => panic!(""),
+        Key::Index { of, total } => {
+            if vec.len() < total {
+                panic!("");
+            }
+
+            match (&mut vec[of], v) {
+                (json::Value::Null, v) => vec[of] = v,
+                (slot, json::Value::Object(map)) => {
+                    for (k, v) in map {
+                        insert_json_value(slot, Key::field(k), v);
+                    }
+                }
+                (_, json::Value::Null) => {
+                    // we have inserted a null value
+                    return;
+                }
+                _ => {
+                    unreachable!()
+                }
+            }
+        }
+    }
+}
+
+fn insert_json_map(map: &mut json::Map<String, json::Value>, k: Key, v: json::Value) {
+    match k {
+        Key::Field(k) => {
+            if !map.contains_key(&k) {
+                map.insert(k, v);
+                return;
+            }
+
+            let av = map.get_mut(&k).unwrap();
+            match (av, v) {
+                (av, serde_json::Value::Object(map)) => {
+                    for (k, v) in map {
+                        insert_json_value(av, Key::field(k), v);
+                    }
+                }
+                (_, json::Value::Null) => {
+                    // we have inserted a null value
+                    return;
+                }
+                _ => {
+                    unreachable!()
+                }
+            }
+        }
+        Key::Index { .. } => unreachable!(),
+    }
+}
+
+fn replace_json_value(slot: &mut json::Value, k: Key, v: json::Value) {
+    match k {
+        Key::Field(k) => {
+            let v = json::Value::Object(json::Map::from_iter([(k.into(), v)]));
+            let _ = mem::replace(slot, v);
+        }
+        Key::Index { of, total } => {
+            if of >= total {
+                panic!("of >= total");
+            }
+            let mut vs = vec![json::Value::Null; total];
+            vs[of] = v;
+            let v = json::Value::Array(vs);
+            let _ = mem::replace(slot, v);
+        }
+    }
+}
+
 /// Never touch existed values.  
 ///
 /// # PANIC
 /// If conflicts.
-#[allow(dead_code)]
 fn insert_json_value(ans: &mut json::Value, k: Key, v: json::Value) {
     match ans {
-        serde_json::Value::Array(vec) => match k {
-            Key::Field(_) => panic!(""),
-            Key::Index { of, total } => {
-                if of >= total || vec.len() < total {
-                    panic!("");
-                }
-
-                match (&mut vec[of], v) {
-                    (json::Value::Null, v) => vec[of] = v,
-                    (slot, json::Value::Object(map)) => {
-                        for (k, v) in map {
-                            insert_json_value(slot, Key::field(k), v);
-                        }
-                    }
-                    _ => {
-                        return;
-                    }
-                }
-            }
-        },
-        serde_json::Value::Object(map) => match k {
-            Key::Field(k) => {
-                if !map.contains_key(&k) {
-                    map.insert(k, v);
-                    return;
-                }
-
-                let av = ans.get_mut(&k).unwrap();
-                match (av, v) {
-                    (av, serde_json::Value::Object(map)) => {
-                        for (k, v) in map {
-                            insert_json_value(av, Key::field(k), v);
-                        }
-                    }
-                    _ => {
-                        return;
-                    }
-                }
-            }
-            Key::Index { .. } => unreachable!(),
-        },
-        serde_json::Value::Null => match k {
-            Key::Field(k) => {
-                let v = json::Value::Object(json::Map::from_iter([(k.into(), v)]));
-                let _ = mem::replace(ans, v);
-            }
-            Key::Index { of, total } => {
-                if of >= total {
-                    panic!("of >= total");
-                }
-                let mut vs = vec![json::Value::Null; total];
-                vs[of] = v;
-                let v = json::Value::Array(vs);
-                let _ = mem::replace(ans, v);
-            }
-        },
+        serde_json::Value::Array(vec) => insert_json_array(vec, k, v),
+        serde_json::Value::Object(map) => insert_json_map(map, k, v),
+        serde_json::Value::Null => replace_json_value(ans, k, v),
         _ => unreachable!(),
     }
 }
 
 fn toml_to_json_value(kv: HashMap<Path<'_>, json::Value>) -> json::Value {
-    // dbg!(&kv);
     let mut ans = json::Value::Null;
     for (path, v) in kv {
-        let keys = path.keys().collect::<Vec<_>>();
-        if keys.is_empty() {
-            continue;
-        }
-
-        let len = keys.len();
         let mut cur = &mut ans;
-        for key in &keys[..len - 1] {
+        for key in path.keys() {
             insert_json_value(cur, key.clone(), json::Value::Null);
             cur = match key {
                 Key::Field(s) => cur.get_mut(s).unwrap(),
                 Key::Index { of, .. } => cur.get_mut(of).unwrap(),
             }
         }
-        insert_json_value(cur, keys[len - 1].clone(), v);
+        let _ = mem::replace(cur, v);
     }
-    // dbg!(&ans);
     ans
 }
-
-// #[allow(dead_code)]
-// fn insert_json_value_dfs<Iter: Iterator<Item = Key>>(
-//     ans: &mut json::Value,
-//     mut path: Iter,
-//     v: json::Value,
-// ) {
-//     match path.next() {
-//         Some(Key::Field(key)) => {
-//             let inner = json::Map::new();
-//             match ans {
-//                 serde_json::Value::Object(map) => {
-//                     map.insert(key, json::Value::Object(inner));
-//                 }
-//                 _ => todo!(),
-//             }
-//             insert_json_value_dfs(ans, path, v);
-//         }
-//         Some(Key::Index { of, total }) => {
-//             todo!()
-//         }
-//         None => {
-//             let _ = mem::replace(ans, v);
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod test {
