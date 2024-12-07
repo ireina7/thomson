@@ -3,7 +3,10 @@ use std::{borrow::Cow, collections::HashMap, mem};
 use rule::Rules;
 use serde_json as json;
 
-use crate::rule::{self, Key};
+use crate::{
+    component::path::Path,
+    component::rule::{self, Key},
+};
 
 /// The main logic to transform `TOML` value into `JSON` value by rules
 pub fn transform_by_rules(toml_value: toml::Value, rules: &Rules) -> json::Value {
@@ -41,11 +44,8 @@ fn transform(value: toml::Value) -> json::Value {
 
 /// Transform `TOML` paths by `JSON` rules.  
 /// Keep leaf values.
-pub fn map_by_rules<'v>(
-    toml_value: toml::Value,
-    rules: &Rules,
-) -> HashMap<rule::Path<'v>, toml::Value> {
-    let mut path = rule::Path::empty();
+pub fn map_by_rules<'v>(toml_value: toml::Value, rules: &Rules) -> HashMap<Path<'v>, toml::Value> {
+    let mut path = Path::empty();
     let mut collector = HashMap::new();
     match_rule_dfs(toml_value, rules.root(), &mut path, &mut collector);
     collector
@@ -54,8 +54,8 @@ pub fn map_by_rules<'v>(
 fn match_rule_dfs<'v>(
     toml_value: toml::Value,
     node: &rule::Node,
-    path: &mut rule::Path<'v>,
-    collector: &mut HashMap<rule::Path<'v>, toml::Value>,
+    path: &mut Path<'v>,
+    collector: &mut HashMap<Path<'v>, toml::Value>,
 ) {
     match toml_value {
         toml::Value::Table(map) => {
@@ -161,7 +161,7 @@ fn insert_json_value(ans: &mut json::Value, k: Key, v: json::Value) {
     }
 }
 
-fn toml_to_json_value(kv: HashMap<rule::Path<'_>, json::Value>) -> json::Value {
+fn toml_to_json_value(kv: HashMap<Path<'_>, json::Value>) -> json::Value {
     // dbg!(&kv);
     let mut ans = json::Value::Null;
     for (path, v) in kv {

@@ -1,6 +1,6 @@
 //! Build Rules by json.
 
-use crate::rule::{self, Edge, Key, Rules};
+use crate::component::rule::{self, Edge, Key, Rules};
 use serde_json as json;
 
 /// Collect `JSON` format rules.  

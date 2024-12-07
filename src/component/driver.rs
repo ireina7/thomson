@@ -4,10 +4,11 @@ use clap::Parser;
 
 use crate::{
     collect::collect_rules,
-    context::Context,
     io::{parse_json, parse_toml},
     transform::transform_by_rules,
 };
+
+use super::context::Context;
 
 /// The main entry
 pub struct Driver {

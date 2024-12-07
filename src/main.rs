@@ -1,9 +1,9 @@
 mod collect;
-mod context;
-pub mod driver;
+mod component;
 mod io;
-mod rule;
 mod transform;
+
+use component::driver;
 
 fn main() {
     env_logger::init();
